@@ -19,13 +19,20 @@ class _CustomAppBarState extends State<CustomAppBar> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            BounceInLeft(
-              child: const Icon(
-                Icons.menu,
-                size: 40,
-                color: Colors.black,
+            GestureDetector(
+              onTap: (){
+                Navigator.pop(context);
+              },
+              child:  BounceInLeft(
+                child: const Icon(
+                  Icons.menu,
+                  size: 40,
+
+                  color: Colors.black,
+                ),
               ),
             ),
+
             BounceInDown(
               child: Text(
                 "Ameya Bot".tr,

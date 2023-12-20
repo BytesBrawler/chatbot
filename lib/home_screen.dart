@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:animate_do/animate_do.dart';
+import 'package:chatbot/chat_screen.dart';
 import 'package:chatbot/custom_appbar.dart';
 import 'package:chatbot/custom_floating.dart';
 import 'package:chatbot/features.dart';
@@ -24,6 +25,12 @@ class _HomePageState extends State<HomePage> {
 
   int start = 200;
   int delay = 200;
+  void getMessages()async{
+    dynamic response = await farziApi(textEditingController.text);
+    print(response);
+    Navigator.push(context, MaterialPageRoute(builder: (context) => ChatScreen(initialString: textEditingController.text, response: response),));
+     textEditingController.clear();
+  }
 
   Widget build(BuildContext context) {
     return Scaffold(
@@ -136,9 +143,11 @@ class _HomePageState extends State<HomePage> {
       ),
       bottomNavigationBar: ZoomIn(
           delay: Duration(milliseconds: start + 3 * delay),
-          child: CustomFooterClass(
-            controller: textEditingController,
+          child: CustomFooterClass(callback: ()=>getMessages(), controller: textEditingController,
+
           )),
+
+
       // floatingActionButton: customFooter(context),
       // floatingActionButton: ZoomIn(
       //   delay: Duration(milliseconds: start + 3 * delay),
@@ -193,5 +202,6 @@ class _HomePageState extends State<HomePage> {
       //   ),
       // ),
     );
+
   }
 }
