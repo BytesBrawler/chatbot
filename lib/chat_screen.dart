@@ -129,7 +129,8 @@ class _ChatScreenState extends State<ChatScreen> {
   void getMessages() async {
     final String prompt = await convertor(_controller.text, "en");
     addMessage("user", _controller.text);
-    final String reply = await farziApi(prompt);
+    final String reply = await openAIService.CHATGPTAPI(prompt);
+    // final String reply = await farziApi(prompt);
     print(reply);
     final String savedLanguageAnswer =
         await convertor(reply, widget.languageKey);

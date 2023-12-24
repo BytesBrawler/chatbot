@@ -43,7 +43,7 @@ class OpenAIService {
         //  print(content);
       } else {
         isLoading = false;
-        return "api call failed";
+        return "bhai api nhi chal rhi";
       }
       //return "api call ended";
     } catch (e) {

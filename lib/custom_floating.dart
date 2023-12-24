@@ -125,11 +125,13 @@ class _CustomFooterClassState extends State<CustomFooterClass> {
                           Timer(
                             const Duration(seconds: 1),
                             () async {
-                              final String speech = await farziApi(lastWords);
+                              final String speech =
+                                  await openAIService.CHATGPTAPI(lastWords);
+                              //    final String speech = await farziApi(lastWords);
                               final String question =
                                   await convertor(lastWords, "hi");
                               final String answer =
-                                  await convertor(speech, "pa");
+                                  await convertor(speech, "hi");
                               showBox(context, question, answer);
                               final talkingLanguage =
                                   await convertor(speech, "en");
@@ -163,9 +165,8 @@ class _CustomFooterClassState extends State<CustomFooterClass> {
                           initSpeechToText();
                         }
                       },
-                      child: const Icon(
-                        // speechToText.isListening ? Icons.stop :
-                        Icons.mic,
+                      child: Icon(
+                        speechToText.isListening ? Icons.stop : Icons.mic,
                       ),
                     ),
                   )
