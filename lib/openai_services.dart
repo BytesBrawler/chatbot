@@ -9,11 +9,11 @@ class OpenAIService {
   Future<String> CHATGPTAPI(String prompt) async {
     // print("api call starts");
     // print('prompt is ${prompt}');
-    messages.add({
-      'role': "system",
-      'content':
-          "you should act as an asistant and have to reply in single String format of /api/jobs/getDetails/query?location=(location value  and if it doen't containe string then give value of location as 0"
-    });
+    // messages.add({
+    //   'role': "system",
+    //   'content':
+    //       "you should act as an asistant and have to reply in single String format of /api/jobs/getDetails/query?location=(location value  and if it doen't containe string then give value of location as 0"
+    // });
     //&qualification=(qualification value)&location=(location value)
     messages.add({'role': 'user', 'content': prompt});
     isLoading = true;
@@ -87,7 +87,7 @@ class OpenAIService {
   // }
 }
 
-Future farziApi(String prompt) async {
+Future<String> farziApi(String prompt) async {
 // Map content = {
 //   "content": "I want a private job with 2 years of exprience",
 // };
@@ -105,8 +105,7 @@ Future farziApi(String prompt) async {
   try {
     // print(messages);
     final response = await http.post(
-      Uri.parse(
-          'http://127.0.0.1:5000/chatbot'),
+      Uri.parse('http://127.0.0.1:5000/chatbot'),
       //  Uri.parse('http://http://127.0.0.1:2000$Url'),
       headers: {
         // "Access-Control-Allow-Origin": "*",
@@ -120,8 +119,7 @@ Future farziApi(String prompt) async {
     print(response.body);
     if (response.statusCode == 200) {
       print(jsonDecode(response.body));
-      final String output =
-      jsonDecode(response.body)["response"];
+      final String output = jsonDecode(response.body)["response"];
 
       return output.toString();
       print(output);
@@ -134,5 +132,3 @@ Future farziApi(String prompt) async {
     return e.toString();
   }
 }
-
-

@@ -1,4 +1,7 @@
+import 'package:chatbot/chat_screen.dart';
+import 'package:chatbot/openai_services.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class Features extends StatelessWidget {
   const Features({super.key});
@@ -33,7 +36,7 @@ class Features extends StatelessWidget {
   }) {
     return GestureDetector(
       onTap: () {
-        onTap();
+        onTap(context);
       },
       child: Container(
         margin: const EdgeInsets.fromLTRB(5, 5, 5, 5),
@@ -65,11 +68,35 @@ class Features extends StatelessWidget {
 
 //title , url ,function
 final List<List> featureList = [
-  ["jobs", "assets/images/icon7.png", () {}],
+  [
+    "jobs".tr,
+    "assets/images/icon7.png",
+    (BuildContext context) async {
+      final response = await farziApi("jobs");
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ChatScreen(
+              initialString: "Jobs",
+              response: response,
+            ),
+          ));
+    }
+  ],
   [
     "skill Training",
     "assets/images/icon5.png",
-    () {},
+    (BuildContext context) async {
+      final response = await farziApi("Skil Training");
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ChatScreen(
+              initialString: "Skill Training",
+              response: response,
+            ),
+          ));
+    }
   ],
   [
     "Self Employment",

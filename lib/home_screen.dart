@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:animate_do/animate_do.dart';
 import 'package:chatbot/chat_screen.dart';
 import 'package:chatbot/custom_appbar.dart';
@@ -6,12 +5,9 @@ import 'package:chatbot/custom_floating.dart';
 import 'package:chatbot/features.dart';
 import 'package:chatbot/openai_services.dart';
 import 'package:chatbot/pallete.dart';
+import 'package:chatbot/translation.dart/change_translation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_tts/flutter_tts.dart';
 import 'package:get/get.dart';
-import 'package:speech_to_text/speech_recognition_result.dart';
-import 'package:speech_to_text/speech_to_text.dart';
-import 'package:translator_plus/translator_plus.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -22,28 +18,50 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   TextEditingController textEditingController = TextEditingController();
-
+  String selectedLanguage = 'English';
+  String selectedLanguageKey = 'en';
   int start = 200;
   int delay = 200;
-  void getMessages()async{
-    dynamic response = await farziApi(textEditingController.text);
+  void getMessages() async {
+    //  dynamic response = await farziApi(textEditingController.text);
+    dynamic response =
+        await OpenAIService().CHATGPTAPI(textEditingController.text);
     print(response);
-    Navigator.push(context, MaterialPageRoute(builder: (context) => ChatScreen(initialString: textEditingController.text, response: response),));
-     textEditingController.clear();
+    final String intitialString = textEditingController.value.text;
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ChatScreen(
+            initialString: intitialString,
+            response: response,
+            languageKey: selectedLanguageKey,
+          ),
+        ));
+    textEditingController.clear();
   }
 
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: AppBar(
-      //   title: BounceInDown(
-      //     child: const Text('Ameya Bot'),
-      //   ),
-      //   leading: const Icon(Icons.menu),
-      //   centerTitle: true,
-      // ),
       appBar: PreferredSize(
         preferredSize: MediaQuery.of(context).size * 0.14,
-        child: const SafeArea(child: CustomAppBar()),
+        child: SafeArea(
+            child: Column(
+          children: [
+            CustomAppBar(),
+            const SizedBox(
+              height: 20,
+            ),
+            BounceInDown(
+                child: Wrap(
+              spacing: 10.0,
+              children: [
+                buildChoiceChip('English'),
+                buildChoiceChip('हिंदी'),
+                buildChoiceChip('ਪੰਜਾਬੀ'),
+              ],
+            )),
+          ],
+        )),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -143,65 +161,40 @@ class _HomePageState extends State<HomePage> {
       ),
       bottomNavigationBar: ZoomIn(
           delay: Duration(milliseconds: start + 3 * delay),
-          child: CustomFooterClass(callback: ()=>getMessages(), controller: textEditingController,
-
+          child: CustomFooterClass(
+            callback: () => getMessages(),
+            controller: textEditingController,
+            isVoiceUsed: false,
           )),
-
-
-      // floatingActionButton: customFooter(context),
-      // floatingActionButton: ZoomIn(
-      //   delay: Duration(milliseconds: start + 3 * delay),
-      //   child: FloatingActionButton(
-      //     backgroundColor: Pallete.firstSuggestionBoxColor,
-      //     onPressed: () async {
-      //       if (await speechToText.hasPermission &&
-      //           speechToText.isNotListening) {
-      //         await startListening();
-      //         //ss  showToast(lastWords, animDuration: Duration(milliseconds: 500));
-      //       } else if (speechToText.isListening) {
-      //         Timer(
-      //           Duration(seconds: 1),
-      //           () async {
-      //             final speech = await openAIService.CHATGPTAPI(lastWords);
-      //             final String question = await convertor(lastWords, "hi");
-      //             final String answer = await convertor(speech, "hi");
-      //             showBox(context, question, answer);
-      //             await systemSpeak(answer);
-
-      //             // Fluttertoast.showToast(
-      //             //     msg: speech,
-      //             //     toastLength: Toast.LENGTH_LONG,
-      //             //     gravity: ToastGravity.CENTER,
-      //             //     timeInSecForIosWeb: 5,
-      //             //     backgroundColor: Colors.red,
-      //             //     textColor: Colors.white,
-      //             //     fontSize: 16.0);
-      //           },
-      //         );
-
-      //         // if (speech.contains('https')) {
-      //         //   generatedImageUrl = speech;
-      //         //   generatedContent = null;
-      //         //   setState(() {});
-      //         // } else {
-      //         //   generatedImageUrl = null;
-      //         //   generatedContent = speech;
-      //         //   setState(() {});
-      //         //   await systemSpeak(speech);
-
-      //         // }
-
-      //         await stopListening();
-      //       } else {
-      //         initSpeechToText();
-      //       }
-      //     },
-      //     child: Icon(
-      //       speechToText.isListening ? Icons.stop : Icons.mic,
-      //     ),
-      //   ),
-      // ),
     );
+  }
 
+  Widget buildChoiceChip(String label) {
+    return ChoiceChip(
+      label: Text(label),
+      selected: selectedLanguage == label,
+      selectedColor: Colors.orange,
+      onSelected: (bool selected) {
+        setState(() {
+          print(selected);
+          if (selected) {
+            selectedLanguage = label;
+            if (label == "ਪੰਜਾਬੀ'") {
+              selectedLanguage = "ਪੰਜਾਬੀ'";
+              selectedLanguageKey = "pa";
+              ChangeTranslation().updateTranslation(const Locale('pa_IN'));
+            } else if (label == "हिंदी") {
+              selectedLanguage = "हिंदी";
+              selectedLanguageKey = "hi";
+              ChangeTranslation().updateTranslation(const Locale('hi_IN'));
+            } else {
+              selectedLanguage = "English";
+              selectedLanguageKey = "en";
+              ChangeTranslation().updateTranslation(const Locale('en_US'));
+            }
+          }
+        });
+      },
+    );
   }
 }

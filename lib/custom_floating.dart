@@ -1,8 +1,5 @@
 import 'dart:async';
-import 'dart:ffi';
-import 'package:chatbot/chat_screen.dart';
 import 'package:chatbot/openai_services.dart';
-import 'package:chatbot/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
@@ -10,16 +7,23 @@ import 'package:speech_to_text/speech_to_text.dart';
 import 'package:translator_plus/translator_plus.dart';
 
 class CustomFooterClass extends StatefulWidget {
-final VoidCallback callback;
-final TextEditingController controller;
-  const CustomFooterClass({super.key, required this.callback, required this.controller,  });
+  final VoidCallback callback;
+  final VoidCallback? voiceAction;
+  final TextEditingController controller;
+  final bool isVoiceUsed;
+  const CustomFooterClass({
+    super.key,
+    required this.callback,
+    required this.controller,
+    required this.isVoiceUsed,
+    this.voiceAction,
+  });
 
   @override
   State<CustomFooterClass> createState() => _CustomFooterClassState();
 }
 
 class _CustomFooterClassState extends State<CustomFooterClass> {
-
   final speechToText = SpeechToText();
   final translator = GoogleTranslator();
   final flutterTts = FlutterTts();
@@ -29,8 +33,10 @@ class _CustomFooterClassState extends State<CustomFooterClass> {
   @override
   void initState() {
     super.initState();
+
     initSpeechToText();
     initTextToSpeech();
+    //systemSpeak(widget.response);
   }
 
   Future<void> initTextToSpeech() async {
@@ -81,6 +87,7 @@ class _CustomFooterClassState extends State<CustomFooterClass> {
   void dispose() {
     super.dispose();
     speechToText.stop();
+
     flutterTts.stop();
   }
 
@@ -92,27 +99,85 @@ class _CustomFooterClassState extends State<CustomFooterClass> {
         //  decoration: BoxDecoration(
         //  border: Border.all(width: 2.0, style: BorderStyle.solid)),
         height: MediaQuery.of(context).size.height * 0.1,
-        width: MediaQuery.of(context).size.width,
+        width: 350,
         child: Row(
           children: [
             const SizedBox(
               width: 10,
             ),
-            // Container(
-            //   decoration: const BoxDecoration(
-            //     borderRadius: BorderRadius.all(Radius.circular(10)),
-            //     color: Colors.orange,
+            widget.isVoiceUsed
+                ? Container(
+                    decoration: const BoxDecoration(
+                      borderRadius: BorderRadius.all(Radius.circular(10)),
+                      color: Colors.orange,
 
-            //     // border: Border.all(width: 2.0, style: BorderStyle.solid)
-            //   ),
-            //   width: 50,
-            //   height: 50,
-            //   child: Icon(Icons.replay),
-            // ),
+                      // border: Border.all(width: 2.0, style: BorderStyle.solid)
+                    ),
+                    width: 50,
+                    height: 50,
+                    child: InkWell(
+                      onTap: () async {
+                        if (await speechToText.hasPermission &&
+                            speechToText.isNotListening) {
+                          await startListening();
+                          //ss  showToast(lastWords, animDuration: Duration(milliseconds: 500));
+                        } else if (speechToText.isListening) {
+                          Timer(
+                            const Duration(seconds: 1),
+                            () async {
+                              final String speech = await farziApi(lastWords);
+                              final String question =
+                                  await convertor(lastWords, "hi");
+                              final String answer =
+                                  await convertor(speech, "pa");
+                              showBox(context, question, answer);
+                              final talkingLanguage =
+                                  await convertor(speech, "en");
+                              await systemSpeak(talkingLanguage);
 
+                              // Fluttertoast.showToast(
+                              //     msg: speech,
+                              //     toastLength: Toast.LENGTH_LONG,
+                              //     gravity: ToastGravity.CENTER,
+                              //     timeInSecForIosWeb: 5,
+                              //     backgroundColor: Colors.red,
+                              //     textColor: Colors.white,
+                              //     fontSize: 16.0);
+                            },
+                          );
+
+                          // if (speech.contains('https')) {
+                          //   generatedImageUrl = speech;
+                          //   generatedContent = null;
+                          //   setState(() {});
+                          // } else {
+                          //   generatedImageUrl = null;
+                          //   generatedContent = speech;
+                          //   setState(() {});
+                          //   await systemSpeak(speech);
+
+                          // }
+
+                          await stopListening();
+                        } else {
+                          initSpeechToText();
+                        }
+                      },
+                      child: const Icon(
+                        // speechToText.isListening ? Icons.stop :
+                        Icons.mic,
+                      ),
+                    ),
+                  )
+                : const SizedBox(
+                    width: 1,
+                  ),
+            const SizedBox(
+              width: 10,
+            ),
             Container(
               height: MediaQuery.of(context).size.height * 0.06,
-              width: MediaQuery.of(context).size.width * 0.75,
+              width: widget.isVoiceUsed ? 250 : 290,
               decoration: BoxDecoration(
                   borderRadius: const BorderRadius.all(Radius.circular(20)),
                   //color: Colors.orange,
@@ -124,18 +189,16 @@ class _CustomFooterClassState extends State<CustomFooterClass> {
               child: TextFormField(
                 controller: widget.controller,
                 decoration: const InputDecoration(
-
                   hintText: "Write Here ...",
                   border: InputBorder.none,
                 ),
                 onFieldSubmitted: (value) async {
-                 widget.callback();
-
+                  widget.callback();
                 },
               ),
             ),
             const SizedBox(
-              width: 20,
+              width: 5,
             ),
             Container(
               decoration: const BoxDecoration(
@@ -144,109 +207,13 @@ class _CustomFooterClassState extends State<CustomFooterClass> {
 
                 // border: Border.all(width: 2.0, style: BorderStyle.solid)
               ),
-              width: 60,
-              height: 60,
+              width: 50,
+              height: 50,
               child: InkWell(
-                onTap: widget.callback
-
-                  // //await systemSpeak(speech);
-                  // final String string =
-                  //     await OpenAIService().CHATGPTAPI(widget.controller.text);
-                  // print(string);
-                  // final Map responseMap = convertQueryStringToMap(string);
-                  // print(responseMap);
-                  // if (responseMap["location"] == " " &&
-                  //     responseMap["qualification"] == " " &&
-                  //     responseMap["exprience"] == " " &&
-                  //     responseMap["job_type"] == " ") {
-                  //   //pass a string to get that the data is not correctly enter
-                  //   return showBox(context, "Error",
-                  //       "Please check your details correctly");
-                  //   //procceed via differnt steps as per time
-                  //
-                  //   //don't forget to convert incoming datas language
-                  // } else {
-                  //   Navigator.push(
-                  //       context,
-                  //       MaterialPageRoute(
-                  //         builder: (context) => ChatScreen(
-                  //           initialString: widget.controller.text,
-                  //           response: responseMap,
-                  //         ),
-                  //       ));
-                  //   //pass string mentioning that there data is procceed successfully//means waiting
-                  // }
-
-                  // final String alpha =
-                  //     await textResponse(widget.controller.text);
-                  // print(alpha);
-                  // final String alpha = await OpenAIService().farziApi(value);
-                  // print(alpha);
-
-
-                ,child: const Icon(Icons.send),
+                onTap: widget.callback,
+                child: const Icon(Icons.send),
               ),
             ),
-            // Container(
-            //   decoration: const BoxDecoration(
-            //     borderRadius: BorderRadius.all(Radius.circular(10)),
-            //     color: Colors.orange,
-
-            //     // border: Border.all(width: 2.0, style: BorderStyle.solid)
-            //   ),
-            //   width: 60,
-            //   height: 60,
-            //   child: InkWell(
-            //     onTap: () async {
-            //       if (await speechToText.hasPermission &&
-            //           speechToText.isNotListening) {
-            //         await startListening();
-            //         //ss  showToast(lastWords, animDuration: Duration(milliseconds: 500));
-            //       } else if (speechToText.isListening) {
-            //         Timer(
-            //           const Duration(seconds: 1),
-            //           () async {
-            //             final speech =
-            //                 await openAIService.CHATGPTAPI(lastWords);
-            //             final String question =
-            //                 await convertor(lastWords, "hi");
-            //             final String answer = await convertor(speech, "pa");
-            //             showBox(context, question, answer);
-            //             await systemSpeak(speech);
-
-            //             // Fluttertoast.showToast(
-            //             //     msg: speech,
-            //             //     toastLength: Toast.LENGTH_LONG,
-            //             //     gravity: ToastGravity.CENTER,
-            //             //     timeInSecForIosWeb: 5,
-            //             //     backgroundColor: Colors.red,
-            //             //     textColor: Colors.white,
-            //             //     fontSize: 16.0);
-            //           },
-            //         );
-
-            //         // if (speech.contains('https')) {
-            //         //   generatedImageUrl = speech;
-            //         //   generatedContent = null;
-            //         //   setState(() {});
-            //         // } else {
-            //         //   generatedImageUrl = null;
-            //         //   generatedContent = speech;
-            //         //   setState(() {});
-            //         //   await systemSpeak(speech);
-
-            //         // }
-
-            //         await stopListening();
-            //       } else {
-            //         initSpeechToText();
-            //       }
-            //     },
-            //     child: Icon(
-            //       speechToText.isListening ? Icons.stop : Icons.mic,
-            //     ),
-            //   ),
-            // ),
           ],
         ),
       ),
@@ -298,50 +265,49 @@ class _CustomFooterClassState extends State<CustomFooterClass> {
     );
   }
 
-  Future<String> textResponse(String value) async {
-//     final String mainPrompt =
-//         '$value , please tell me from given prompt in which category should i move "Jobs" , "conselling" or "armed forces"  , answer in single word';
-    final speech = await openAIService.CHATGPTAPI(value);
-    Map<String, String> map = convertQueryStringToMap(speech);
-    final data = await OpenAIService().dataBaseApi(speech);
-    print(map);
-    print(data);
-//
-// if(speech == "jobs"){
-//
-// }
-//   final String question = await convertor(lastWords, "hi");
-//  final String answer = await convertor(speech, "pa");
-    //  showBox(context, question, answer);
+//   Future<String> textResponse(String value) async {
+// //     final String mainPrompt =
+// //         '$value , please tell me from given prompt in which category should i move "Jobs" , "conselling" or "armed forces"  , answer in single word';
+//     final speech = await openAIService.CHATGPTAPI(value);
+//     Map<String, String> map = convertQueryStringToMap(speech);
+//     final data = await OpenAIService().dataBaseApi(speech);
 
-    //  final speech = await openAIService.CHATGPTAPI(value);
-    //   final String question = await convertor(lastWords, "hi");
-    //final String answer = await convertor(speech, "pa");
-    //
-    // showBox(context, question, answer);
-    return speech;
-  }
+// //
+// // if(speech == "jobs"){
+// //
+// // }
+// //   final String question = await convertor(lastWords, "hi");
+// //  final String answer = await convertor(speech, "pa");
+//     //  showBox(context, question, answer);
 
-  Map<String, String> convertQueryStringToMap(String queryString) {
-    Map<String, String> result = {};
+//     //  final speech = await openAIService.CHATGPTAPI(value);
+//     //   final String question = await convertor(lastWords, "hi");
+//     //final String answer = await convertor(speech, "pa");
+//     //
+//     // showBox(context, question, answer);
+//     return speech;
+//   }
 
-    List<String> keyValuePairs = queryString.split('&');
+//   Map<String, String> convertQueryStringToMap(String queryString) {
+//     Map<String, String> result = {};
 
-    for (String pair in keyValuePairs) {
-      List<String> parts = pair.split('=');
-      if (parts.length == 2) {
-        String key = parts[0];
-        String value = parts[1];
+//     List<String> keyValuePairs = queryString.split('&');
 
-        // Decode URL-encoded values
-        value = Uri.decodeComponent(value);
+//     for (String pair in keyValuePairs) {
+//       List<String> parts = pair.split('=');
+//       if (parts.length == 2) {
+//         String key = parts[0];
+//         String value = parts[1];
 
-        result[key] = value;
-      }
-    }
+//         // Decode URL-encoded values
+//         value = Uri.decodeComponent(value);
 
-    return result;
-  }
+//         result[key] = value;
+//       }
+//     }
+
+//     return result;
+//   }
 }
 
 // Widget customFooter(BuildContext context, TextEditingController controller) {

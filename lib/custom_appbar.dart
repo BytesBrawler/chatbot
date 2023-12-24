@@ -20,19 +20,17 @@ class _CustomAppBarState extends State<CustomAppBar> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             GestureDetector(
-              onTap: (){
+              onTap: () {
                 Navigator.pop(context);
               },
-              child:  BounceInLeft(
+              child: BounceInLeft(
                 child: const Icon(
                   Icons.menu,
                   size: 40,
-
                   color: Colors.black,
                 ),
               ),
             ),
-
             BounceInDown(
               child: Text(
                 "Ameya Bot".tr,
@@ -48,56 +46,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
             ),
           ],
         ),
-        const SizedBox(
-          height: 20,
-        ),
-        BounceInDown(child: const LanguageSelector()),
       ],
-    );
-  }
-}
-
-class LanguageSelector extends StatefulWidget {
-  const LanguageSelector({super.key});
-
-  @override
-  LanguageSelectorState createState() => LanguageSelectorState();
-}
-
-class LanguageSelectorState extends State<LanguageSelector> {
-  String selectedLanguage = 'English';
-
-  @override
-  Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 10.0,
-      children: [
-        buildChoiceChip('English'),
-        buildChoiceChip('हिंदी'),
-        buildChoiceChip('ਪੰਜਾਬੀ'),
-      ],
-    );
-  }
-
-  Widget buildChoiceChip(String label) {
-    return ChoiceChip(
-      label: Text(label),
-      selected: selectedLanguage == label,
-      selectedColor: Colors.orange,
-      onSelected: (bool selected) {
-        setState(() {
-          if (selected) {
-            selectedLanguage = label;
-            if (label == "English") {
-              ChangeTranslation().updateTranslation(const Locale('en_US'));
-            } else if (label == "हिंदी") {
-              ChangeTranslation().updateTranslation(const Locale('hi_IN'));
-            } else {
-              ChangeTranslation().updateTranslation(const Locale('pa_In'));
-            }
-          }
-        });
-      },
     );
   }
 }
